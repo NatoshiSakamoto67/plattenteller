@@ -1,6 +1,6 @@
 <title>Plattenteller</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
   :root{
     /* Dunkel - Standardbild */
@@ -27,9 +27,10 @@
     --alert-bg-hover:rgba(255,107,61,.16);
     --on-alert:#1A0A05;
 
-    --display:"Anton","Haettenschweiler","Arial Narrow",sans-serif;
-    --body:"Barlow","Helvetica Neue",Arial,sans-serif;
-    --mono:"DM Mono","SFMono-Regular",Menlo,Consolas,monospace;
+    /* Eine Schrift fuer alles - Ziffern laufen dank tabular-nums trotzdem in Spalten */
+    --display:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+    --body:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+    --mono:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
 
     --r:3px;
   }
@@ -129,12 +130,12 @@
   }
 
   h1,h2{margin:0;text-wrap:balance}
-  button{font:inherit;color:inherit;cursor:pointer}
+  button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
   input,select{font:inherit;color:inherit}
   :focus-visible{outline:2px solid var(--green);outline-offset:2px}
 
   .label{
-    font-family:var(--mono);font-size:10px;letter-spacing:.18em;
+    font-family:var(--mono);font-size:11px;font-weight:500;letter-spacing:.12em;
     text-transform:uppercase;color:var(--muted);
   }
 
@@ -146,7 +147,7 @@
     background:linear-gradient(180deg,var(--bar-a) 0%, var(--bar-b) 100%);
   }
   .brand{
-    font-family:var(--display);font-size:28px;letter-spacing:.06em;
+    font-family:var(--display);font-weight:700;font-size:25px;letter-spacing:.02em;
     text-transform:uppercase;line-height:1;
   }
   .brand span{color:var(--green)}
@@ -164,7 +165,8 @@
   .ghost{
     background:none;border:1px solid var(--line);border-radius:var(--r);
     padding:7px 10px;color:var(--muted);
-    font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.06em;
+    text-transform:uppercase;
   }
   .ghost:hover{color:var(--text);border-color:var(--muted)}
 
@@ -187,15 +189,16 @@
     text-transform:uppercase;color:var(--green);margin:0 0 5px;
   }
   .tour-card h3{
-    margin:0 0 6px;font-family:var(--display);font-size:17px;
-    letter-spacing:.06em;text-transform:uppercase;
+    margin:0 0 6px;font-family:var(--display);font-weight:700;font-size:16px;
+    letter-spacing:.04em;text-transform:uppercase;
   }
-  .tour-card p.text{margin:0;color:var(--muted);font-size:13.5px;line-height:1.45}
+  .tour-card p.text{margin:0;color:var(--text);font-size:14px;line-height:1.5}
   .tour-actions{display:flex;align-items:center;gap:8px;margin-top:12px}
+  .tour-actions .ghost{padding:11px 12px;min-height:44px}
   .tour-actions .grow{flex:1 1 auto}
   .tour-next{
     background:var(--green);color:var(--on-green);border:none;border-radius:var(--r);
-    padding:8px 16px;font-weight:600;
+    padding:11px 20px;min-height:44px;font-weight:600;font-size:15px;
   }
   .tour-next:hover{background:var(--green-hover)}
 
@@ -219,7 +222,7 @@
   }
   .barsum .sum{
     flex:1 1 auto;min-width:0;
-    font-family:var(--mono);font-size:12px;color:var(--text);
+    font-family:var(--mono);font-size:12.5px;color:var(--text);
     font-variant-numeric:tabular-nums;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   }
@@ -256,7 +259,8 @@
   .toggle{display:flex;gap:1px;background:var(--line-soft);border:1px solid var(--line-soft);border-radius:var(--r);overflow:hidden}
   .toggle button{
     background:var(--panel-2);border:none;padding:6px 11px;
-    font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+    font-family:var(--mono);font-size:11.5px;font-weight:500;letter-spacing:.04em;
+    text-transform:uppercase;color:var(--muted);
   }
   .toggle button[aria-pressed="true"]{background:var(--green);color:var(--on-green)}
 
@@ -286,11 +290,11 @@
   }
 
   .col h2{
-    font-family:var(--display);font-size:15px;letter-spacing:.16em;
+    font-family:var(--display);font-weight:700;font-size:14px;letter-spacing:.1em;
     text-transform:uppercase;color:var(--text);
   }
   .head{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
-  .count{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .count{font-family:var(--mono);font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 
   /* ---------- Crew ---------- */
   .add{display:flex;gap:8px}
@@ -340,7 +344,7 @@
     background:var(--green);color:var(--on-green);
     border:none;border-radius:var(--r);
     padding:14px 40px;
-    font-family:var(--display);font-size:21px;letter-spacing:.12em;text-transform:uppercase;
+    font-family:var(--display);font-weight:700;font-size:18px;letter-spacing:.08em;text-transform:uppercase;
   }
   .spin:hover:not(:disabled){background:var(--green-hover)}
   .spin:disabled{background:var(--panel-2);color:var(--faint);border:1px solid var(--line);cursor:not-allowed}
@@ -350,8 +354,8 @@
     display:flex;flex-direction:column;gap:4px;align-items:center;justify-content:center;
   }
   .readout .who{
-    font-family:var(--display);font-size:30px;letter-spacing:.05em;text-transform:uppercase;
-    color:var(--green);line-height:1.05;
+    font-family:var(--display);font-weight:700;font-size:26px;letter-spacing:.02em;
+    text-transform:uppercase;color:var(--green);line-height:1.1;
   }
   .readout .where{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.05em}
   .readout.is-idle .who{color:var(--muted);font-size:16px;letter-spacing:.14em}
@@ -369,7 +373,7 @@
   .slots li.is-open{background:var(--row-open)}
   .slots li.is-next{border-left-color:var(--green)}
   .slots li.is-fresh{background:var(--row-fresh);border-left-color:var(--green)}
-  .slots .time{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
+  .slots .time{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
   .slots .daytag{
     font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--green);flex:none;
     border:1px solid color-mix(in srgb, var(--green) 45%, transparent);border-radius:2px;padding:0 3px;
@@ -912,7 +916,7 @@
 
     if (names.length === 0) {
       ctx.fillStyle = pl.quiet;
-      ctx.font = "600 " + Math.round(size * 0.038) + "px Barlow, sans-serif";
+      ctx.font = "600 " + Math.round(size * 0.038) + "px 'IBM Plex Sans', sans-serif";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText("Keine Namen im Rad", c, c);
@@ -932,7 +936,7 @@
       Math.round(size * 0.016),
       Math.round(Math.min(size * 0.036, seg * r * 0.62 * 0.8))
     );
-    var nameFont = "600 " + fontPx + "px Barlow, sans-serif";
+    var nameFont = "600 " + fontPx + "px 'IBM Plex Sans', sans-serif";
 
     for (var i = 0; i < names.length; i++) {
       var a0 = state.rotation + i * seg;
@@ -974,10 +978,10 @@
     ctx.fillStyle = pl.hubText;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = "500 " + Math.round(size * 0.05) + "px 'DM Mono', monospace";
+    ctx.font = "600 " + Math.round(size * 0.05) + "px 'IBM Plex Sans', sans-serif";
     ctx.fillText(String(names.length), c, c - size * 0.011);
     ctx.fillStyle = pl.hubLabel;
-    ctx.font = "500 " + Math.round(size * 0.019) + "px 'DM Mono', monospace";
+    ctx.font = "500 " + Math.round(size * 0.021) + "px 'IBM Plex Sans', sans-serif";
     ctx.fillText("IM RAD", c, c + size * 0.031);
   }
 
@@ -1262,6 +1266,7 @@
   }
 
   function stepTour() {
+    if (el.tour.hidden) return;   /* Doppelklick auf "Fertig" startet sonst neu */
     tourIndex++;
     if (tourIndex >= TOUR.length) {
       endTour();
@@ -1283,8 +1288,14 @@
     el.tourNext.textContent = tourIndex === TOUR.length - 1 ? "Fertig" : "Weiter";
 
     tourTarget = target;
-    target.scrollIntoView({ block: "center", inline: "nearest" });
-    requestAnimationFrame(function () { placeTour(target); });
+
+    var box = target.getBoundingClientRect();
+    if (box.top < 8 || box.bottom > window.innerHeight - 8) {
+      target.scrollIntoView({ block: "center", inline: "nearest" });
+      requestAnimationFrame(function () { placeTour(target); });
+    } else {
+      placeTour(target);
+    }
   }
 
   /* Loch ueber das echte Bedienelement legen, Karte daneben oder darunter. */
@@ -1398,14 +1409,7 @@
   el.tourSkip.addEventListener("click", endTour);
 
   document.addEventListener("keydown", function (e) {
-    if (el.tour.hidden) return;
-    if (e.key === "Escape") endTour();
-    if (e.key === "Enter" || e.key === " ") {
-      if (document.activeElement === document.body) {
-        e.preventDefault();
-        stepTour();
-      }
-    }
+    if (!el.tour.hidden && e.key === "Escape") endTour();
   });
 
   window.addEventListener("scroll", function () {
