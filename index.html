@@ -127,6 +127,9 @@
   [hidden]{display:none !important}
 
   body{
+    display:flex;flex-direction:column;
+    min-height:100vh;
+    min-height:100dvh;
     background:
       radial-gradient(900px 520px at 50% -8%, var(--bg-top) 0%, transparent 62%),
       var(--ink);
@@ -240,9 +243,11 @@
 
   /* ---------- Bühne ---------- */
   .stage{
+    flex:1 1 auto;min-height:0;
     display:grid;
     grid-template-columns:270px minmax(0,1fr) 310px;
     grid-template-areas:"bar bar bar" "crew deck plan";
+    grid-template-rows:auto minmax(0,1fr);
     gap:1px;
     background:var(--line);
     border-top:1px solid var(--line);
@@ -337,7 +342,9 @@
     list-style:none;margin:0;padding:0;
     display:flex;flex-direction:column;gap:1px;
     background:var(--line-soft);border:1px solid var(--line-soft);border-radius:var(--r);
-    max-height:min(62vh,620px);overflow:auto;overscroll-behavior:contain;
+    flex:1 1 auto;min-height:0;max-height:min(74vh,760px);
+    overflow:auto;overscroll-behavior:contain;
+    align-content:flex-start;
   }
   .slots li{display:flex;align-items:center;gap:10px;background:var(--panel-2);padding:6px 10px;border-left:2px solid transparent}
   .slots li.is-open{background:var(--row-open)}
@@ -363,21 +370,25 @@
   /* ---------- Handy: Crew oben quer, darunter Rad + Laufplan ---------- */
   @media (max-width:1000px){
     .stage{
-      grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);
+      grid-template-columns:minmax(0,1.5fr) minmax(148px,1fr);
       grid-template-areas:"bar bar" "crew crew" "deck plan";
+      grid-template-rows:auto auto minmax(0,1fr);
     }
     .barsum{padding:8px 12px 8px 11px;gap:9px}
     .ctls{padding:8px 12px 10px 11px;gap:9px 18px}
     .col{padding:12px 13px}
     .col--deck{padding:16px 12px 20px}
     .chips{max-height:104px}
-    .slots{max-height:56vh}
+    .slots{max-height:none}
     .wheelwrap{max-width:100%}
   }
   @media (max-width:640px){
     .topbar{padding:11px 14px;gap:10px}
     .brand{font-size:23px}
     .col{padding:10px 11px}
+    .col--plan .head{flex-direction:column;align-items:flex-start;gap:0}
+    .col--plan .head h2{font-size:14px}
+    .count{font-size:11px}
     .barsum .what{display:none}
     .col--deck{padding:10px 8px 14px}
     .spin{margin-top:12px;padding:11px 20px;font-size:17px;letter-spacing:.08em}
@@ -1013,7 +1024,7 @@
 
       var dj = document.createElement("span");
       dj.className = "dj";
-      dj.textContent = name ? name : (i === next ? "als Nächstes dran" : "frei");
+      dj.textContent = name ? name : (i === next ? "als Nächstes" : "frei");
 
       li.appendChild(time);
       if (newDay) {
