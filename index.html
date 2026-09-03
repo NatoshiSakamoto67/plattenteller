@@ -391,6 +391,8 @@
     .col--deck{padding:16px 12px 20px}
     .chips{max-height:104px}
     .slots{max-height:none}
+    /* unter 16px zoomt iOS beim Hineintippen automatisch rein */
+    .add input,.ctl input[type="time"],.ctl select{font-size:16px}
     .wheelwrap{max-width:100%}
   }
   @media (max-width:640px){
@@ -1197,7 +1199,9 @@
 
   el.btnResetAll.addEventListener("click", function () {
     setState({ djs: [], slotCount: 1, autoSlots: true, assigned: [null], winnerIndex: -1, freshSlot: -1 });
-    el.djName.focus();
+    if (window.matchMedia("(hover: hover)").matches) {
+      el.djName.focus();
+    }
   });
 
   el.btnCopy.addEventListener("click", function () {
