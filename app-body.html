@@ -735,7 +735,12 @@
     {
       sel: "#btnCopy",
       title: "Verschicken",
-      text: "Laufplan fertig? Ein Druck, und er liegt als Text in der Zwischenablage — ab damit in die Gruppe."
+      /* Text richtet sich nach dem Knopf: auf dem Handy "Teilen", am Rechner "Kopieren" */
+      text: function () {
+        return canShare
+          ? "Laufplan fertig? „Teilen“ öffnet direkt WhatsApp, Signal & Co. — ab damit in die Gruppe."
+          : "Laufplan fertig? Ein Druck, und er liegt als Text in der Zwischenablage — ab damit in die Gruppe.";
+      }
     },
     {
       sel: ".topactions",
@@ -1626,7 +1631,7 @@
 
     el.tourStep.textContent = "Schritt " + (tourIndex + 1) + " von " + TOUR.length;
     el.tourTitle.textContent = step.title;
-    el.tourText.textContent = step.text;
+    el.tourText.textContent = typeof step.text === "function" ? step.text() : step.text;
     el.tourNext.textContent = tourIndex === TOUR.length - 1 ? "Fertig" : "Weiter";
 
     tourTarget = target;
