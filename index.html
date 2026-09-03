@@ -191,6 +191,38 @@
   }
   .ghost:hover{color:var(--text);border-color:var(--muted)}
 
+  .topactions{display:flex;align-items:center;gap:8px}
+
+  /* ---------- Rundgang ---------- */
+  .tour{position:fixed;inset:0;z-index:60}
+  .tour-spot{
+    position:absolute;border-radius:4px;pointer-events:none;
+    box-shadow:0 0 0 9999px rgba(0,0,0,.76), 0 0 0 2px var(--green);
+    transition:top .22s ease,left .22s ease,width .22s ease,height .22s ease;
+  }
+  .tour-card{
+    position:absolute;width:min(310px,calc(100vw - 24px));
+    background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);
+    padding:14px 15px 12px;
+    box-shadow:0 24px 60px -26px rgba(0,0,0,.9);
+  }
+  .tour-card .step{
+    font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--green);margin:0 0 5px;
+  }
+  .tour-card h3{
+    margin:0 0 6px;font-family:var(--display);font-size:17px;
+    letter-spacing:.06em;text-transform:uppercase;
+  }
+  .tour-card p.text{margin:0;color:var(--muted);font-size:13.5px;line-height:1.45}
+  .tour-actions{display:flex;align-items:center;gap:8px;margin-top:12px}
+  .tour-actions .grow{flex:1 1 auto}
+  .tour-next{
+    background:var(--green);color:var(--on-green);border:none;border-radius:var(--r);
+    padding:8px 16px;font-weight:600;
+  }
+  .tour-next:hover{background:var(--green-hover)}
+
   /* ---------- Reglerleiste (eingeklappt) ---------- */
   .bar{grid-area:bar;display:flex;flex-direction:column;background:var(--panel)}
   .barsum{
@@ -420,6 +452,14 @@
 <header class="topbar">
   <h1 class="brand">Platten<span>teller</span></h1>
   <div class="spacer"></div>
+  <div class="topactions">
+  <button class="iconbtn" id="btnTour" type="button" aria-label="Kurzen Rundgang starten" title="Kurzer Rundgang">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M9.4 9.2a2.7 2.7 0 1 1 3.3 3.1c-.5.2-.7.6-.7 1.1v.4"></path>
+      <path d="M12 17.1h.01"></path>
+    </svg>
+  </button>
   <button class="iconbtn" id="btnTheme" type="button" data-mode="dark" aria-label="Zwischen hell und dunkel wechseln" title="Hell / Dunkel">
     <svg class="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
       <circle cx="12" cy="12" r="4.2"></circle>
@@ -430,6 +470,7 @@
     </svg>
   </button>
   <button class="ghost" id="btnResetAll" type="button">Alles zurücksetzen</button>
+  </div>
 </header>
 
 <main class="stage">
@@ -525,6 +566,20 @@
 
 </main>
 
+<div class="tour" id="tour" hidden>
+  <div class="tour-spot" id="tourSpot"></div>
+  <div class="tour-card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
+    <p class="step" id="tourStep">1 / 7</p>
+    <h3 id="tourTitle">Titel</h3>
+    <p class="text" id="tourText">Text</p>
+    <div class="tour-actions">
+      <button class="ghost" id="tourSkip" type="button">Überspringen</button>
+      <span class="grow"></span>
+      <button class="tour-next" id="tourNext" type="button">Weiter</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
   "use strict";
@@ -580,6 +635,48 @@
     }
   };
 
+  var TOUR_KEY = "plattenteller.tour";
+
+  /* Der Rundgang zeigt auf echte Bedienelemente, nichts wird nachgebaut. */
+  var TOUR = [
+    {
+      sel: ".add",
+      title: "Namen rein",
+      text: "Tipp die DJ-Namen ein. Mehrere auf einmal gehen auch: mit Komma trennen oder eine fertige Liste reinkopieren."
+    },
+    {
+      sel: "#btnSpin",
+      title: "Drehen",
+      text: "Ein Druck, das Rad läuft aus — und wer getroffen wird, landet automatisch im nächsten freien Slot."
+    },
+    {
+      sel: "#slots",
+      title: "Der Laufplan",
+      text: "Hier füllt sich der Abend, Slot für Slot. Geht es über Mitternacht, markiert ein grünes +1 den Tageswechsel."
+    },
+    {
+      sel: "#btnSettings",
+      title: "Einstellungen",
+      text: "Hinter dem orangen Balken stecken Startzeit, Länge pro Slot, Anzahl und Modus. Ich klappe ihn dir jetzt auf."
+    },
+    {
+      sel: ".stepper",
+      title: "Wie lang wird's",
+      text: "Mit − und + legst du fest, wie viele Slots gespielt werden. Mehr Slots heißt: der Abend läuft über Mitternacht weiter — daneben steht immer, wann Schluss ist.",
+      before: function () { openSettings(true); }
+    },
+    {
+      sel: "#btnCopy",
+      title: "Verschicken",
+      text: "Laufplan fertig? Ein Druck, und er liegt als Text in der Zwischenablage — ab damit in die Gruppe."
+    },
+    {
+      sel: ".topactions",
+      title: "Oben rechts",
+      text: "Das Fragezeichen startet diesen Rundgang neu, die Sonne schaltet auf hell, und „Alles zurücksetzen“ leert Namen und Plan für den nächsten Abend."
+    }
+  ];
+
   var SEED = ["Kalle", "Mira", "Nox", "Tobi", "Selin", "Jonas"];
 
   var state = {
@@ -623,8 +720,21 @@
     btnCopy: document.getElementById("btnCopy"),
     btnClearPlan: document.getElementById("btnClearPlan"),
     btnResetAll: document.getElementById("btnResetAll"),
-    btnTheme: document.getElementById("btnTheme")
+    btnTheme: document.getElementById("btnTheme"),
+    btnTour: document.getElementById("btnTour"),
+    tour: document.getElementById("tour"),
+    tourSpot: document.getElementById("tourSpot"),
+    tourCard: document.getElementById("tourCard"),
+    tourStep: document.getElementById("tourStep"),
+    tourTitle: document.getElementById("tourTitle"),
+    tourText: document.getElementById("tourText"),
+    tourSkip: document.getElementById("tourSkip"),
+    tourNext: document.getElementById("tourNext")
   };
+
+  var tourIndex = -1;
+  var tourTarget = null;
+  var settingsWereOpen = false;
 
   var ctx = el.canvas.getContext("2d");
 
@@ -1160,6 +1270,88 @@
     return lines.join("\n");
   }
 
+  function openSettings(open) {
+    el.settings.hidden = !open;
+    el.btnSettings.setAttribute("aria-expanded", open ? "true" : "false");
+    sizeCanvas();
+  }
+
+  /* ---------- Rundgang ---------- */
+
+  function startTour() {
+    settingsWereOpen = !el.settings.hidden;
+    tourIndex = -1;
+    el.tour.hidden = false;
+    stepTour();
+  }
+
+  function stepTour() {
+    tourIndex++;
+    if (tourIndex >= TOUR.length) {
+      endTour();
+      return;
+    }
+
+    var step = TOUR[tourIndex];
+    if (step.before) step.before();
+
+    var target = document.querySelector(step.sel);
+    if (!target) {
+      stepTour();
+      return;
+    }
+
+    el.tourStep.textContent = "Schritt " + (tourIndex + 1) + " von " + TOUR.length;
+    el.tourTitle.textContent = step.title;
+    el.tourText.textContent = step.text;
+    el.tourNext.textContent = tourIndex === TOUR.length - 1 ? "Fertig" : "Weiter";
+
+    tourTarget = target;
+    target.scrollIntoView({ block: "center", inline: "nearest" });
+    requestAnimationFrame(function () { placeTour(target); });
+  }
+
+  /* Loch ueber das echte Bedienelement legen, Karte daneben oder darunter. */
+  function placeTour(target) {
+    var r = target.getBoundingClientRect();
+    var pad = 6;
+    var spot = el.tourSpot.style;
+    spot.left = Math.max(0, r.left - pad) + "px";
+    spot.top = Math.max(0, r.top - pad) + "px";
+    spot.width = (r.width + pad * 2) + "px";
+    spot.height = (r.height + pad * 2) + "px";
+
+    var cw = el.tourCard.offsetWidth;
+    var ch = el.tourCard.offsetHeight;
+    var gap = 14;
+    var top;
+    if (window.innerHeight - r.bottom > ch + gap + 8) {
+      top = r.bottom + gap;
+    } else if (r.top > ch + gap + 8) {
+      top = r.top - ch - gap;
+    } else {
+      top = Math.max(8, (window.innerHeight - ch) / 2);
+    }
+
+    var left = r.left + r.width / 2 - cw / 2;
+    left = Math.min(Math.max(10, left), window.innerWidth - cw - 10);
+
+    el.tourCard.style.top = Math.round(top) + "px";
+    el.tourCard.style.left = Math.round(left) + "px";
+  }
+
+  function endTour() {
+    el.tour.hidden = true;
+    tourIndex = -1;
+    tourTarget = null;
+    if (!settingsWereOpen) openSettings(false);
+    try {
+      localStorage.setItem(TOUR_KEY, "1");
+    } catch (err) {
+      /* ohne Speicher startet der Rundgang beim naechsten Besuch erneut */
+    }
+  }
+
   function toast(msg) {
     var box = document.createElement("div");
     box.className = "toast";
@@ -1218,15 +1410,31 @@
   });
 
   el.btnSettings.addEventListener("click", function () {
-    var open = el.settings.hidden;
-    el.settings.hidden = !open;
-    el.btnSettings.setAttribute("aria-expanded", open ? "true" : "false");
-    sizeCanvas();
+    openSettings(el.settings.hidden);
   });
 
   el.btnTheme.addEventListener("click", function () {
     applyTheme(currentTheme() === "dark" ? "light" : "dark");
   });
+
+  el.btnTour.addEventListener("click", startTour);
+  el.tourNext.addEventListener("click", stepTour);
+  el.tourSkip.addEventListener("click", endTour);
+
+  document.addEventListener("keydown", function (e) {
+    if (el.tour.hidden) return;
+    if (e.key === "Escape") endTour();
+    if (e.key === "Enter" || e.key === " ") {
+      if (document.activeElement === document.body) {
+        e.preventDefault();
+        stepTour();
+      }
+    }
+  });
+
+  window.addEventListener("scroll", function () {
+    if (!el.tour.hidden && tourTarget) placeTour(tourTarget);
+  }, true);
 
   window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", function () {
     if (!document.documentElement.hasAttribute("data-theme")) {
@@ -1235,7 +1443,10 @@
     }
   });
 
-  window.addEventListener("resize", sizeCanvas);
+  window.addEventListener("resize", function () {
+    sizeCanvas();
+    if (!el.tour.hidden && tourTarget) placeTour(tourTarget);
+  });
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(drawWheel);
   }
@@ -1254,6 +1465,16 @@
   load();
   render();
   sizeCanvas();
+
+  var tourSeen = null;
+  try {
+    tourSeen = localStorage.getItem(TOUR_KEY);
+  } catch (err) {
+    tourSeen = null;
+  }
+  if (!tourSeen) {
+    setTimeout(startTour, 700);
+  }
 })();
 </script>
 
