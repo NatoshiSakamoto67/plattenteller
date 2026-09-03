@@ -393,24 +393,63 @@
     align-content:flex-start;
   }
   .slots li{display:flex;align-items:center;gap:10px;background:var(--panel-2);padding:6px 10px}
+  .slots li.is-filled{cursor:pointer}
+  .slots li.is-picked{outline:2px solid var(--green);outline-offset:-2px}
   .slots li.is-open{background:var(--row-open)}
   .slots li.is-next .time,.slots li.is-next .dj{color:var(--green)}
-  .slots li.is-fresh{background:var(--row-fresh)}
+  .slots li.is-fresh{background:var(--row-fresh);animation:rowpulse 1.4s ease-out 1}
+  @keyframes rowpulse{
+    from{background:color-mix(in srgb, var(--green) 38%, var(--panel-2))}
+    to{background:var(--row-fresh)}
+  }
   .slots .time{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
   .slots .daytag{
     font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--green);flex:none;
     border:1px solid color-mix(in srgb, var(--green) 45%, transparent);border-radius:2px;padding:0 3px;
   }
   .slots li:not(.is-open) .time{color:var(--text)}
-  .slots .dj{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;text-align:right}
+  .slots .dj{flex:1 1 auto;min-width:0;font-weight:600;text-align:right;overflow-wrap:anywhere;line-height:1.25}
+  .slots .rel{
+    background:none;border:none;color:var(--faint);flex:none;
+    font-size:16px;line-height:1;padding:2px 4px;margin-right:-4px;
+  }
+  .slots .rel:hover{color:var(--green)}
   .slots li.is-open .dj{color:var(--faint);font-weight:400;font-style:italic}
   .planfoot{display:flex;gap:8px;flex-wrap:wrap;margin-top:auto;padding-top:12px;border-top:1px solid var(--line)}
 
   .toast{
-    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:70;
+    display:flex;align-items:center;gap:16px;max-width:calc(100vw - 24px);
     background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);
-    padding:9px 16px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;
+    padding:9px 16px;font-size:13px;
     box-shadow:0 18px 40px -22px var(--shadow);
+  }
+  .toast button{
+    background:none;border:none;padding:6px 0;
+    color:var(--green);font-weight:600;font-size:13px;white-space:nowrap;
+  }
+
+  /* ---------- Treffer-Moment ueber dem Rad ---------- */
+  .reveal{position:absolute;inset:0;display:grid;place-items:center;text-align:center;pointer-events:none}
+  .reveal-box{
+    background:color-mix(in srgb, var(--ink) 90%, transparent);
+    border:1px solid var(--green);border-radius:6px;padding:14px 24px;
+    animation:revealin .32s cubic-bezier(.2,.9,.3,1.15) both;
+  }
+  .reveal.is-out .reveal-box{animation:revealout .28s ease-in both}
+  .reveal-name{
+    font-weight:700;font-size:clamp(22px,7vw,34px);text-transform:uppercase;
+    color:var(--green);line-height:1.05;letter-spacing:.02em;overflow-wrap:anywhere;
+  }
+  .reveal-slot{font-size:14px;color:var(--text);margin-top:5px;font-variant-numeric:tabular-nums}
+  @keyframes revealin{from{opacity:0;transform:scale(.86)}to{opacity:1;transform:scale(1)}}
+  @keyframes revealout{to{opacity:0;transform:scale(.96)}}
+
+  button.count{background:none;border:none;padding:0;cursor:pointer}
+  button.count:hover{color:var(--text)}
+  .note button{
+    background:none;border:none;padding:0;color:var(--green);
+    font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer;
   }
 
   /* ---------- Handy: Crew oben quer, darunter Rad + Laufplan ---------- */
@@ -431,8 +470,9 @@
     .wheelwrap{max-width:100%}
   }
   @media (max-width:640px){
-    .topbar{padding:11px 14px;gap:10px}
-    .brand{font-size:23px}
+    .topbar{padding:9px 12px;gap:8px}
+    .topactions{gap:6px}
+    .brand{font-size:21px}
     .col{padding:10px 11px}
     .col--plan .head{flex-direction:column;align-items:flex-start;gap:0}
     .col--plan .head h2{font-size:14px}
@@ -472,7 +512,12 @@
       <path d="M20.5 14.6A8.8 8.8 0 0 1 9.4 3.5a8.8 8.8 0 1 0 11.1 11.1Z"></path>
     </svg>
   </button>
-  <button class="ghost" id="btnResetAll" type="button">Alles zurücksetzen</button>
+  <button class="iconbtn" id="btnResetAll" type="button" aria-label="Alles zurücksetzen" title="Alles zurücksetzen">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="1.5 4 1.5 10 7.5 10"></polyline>
+      <path d="M3.9 15a9 9 0 1 0 2.1-9.4L1.5 10"></path>
+    </svg>
+  </button>
   </div>
 </header>
 
@@ -527,26 +572,39 @@
         <button type="button" id="modeMulti" aria-pressed="false">Mehrfach</button>
       </div>
     </div>
+    <div class="ctl">
+      <span class="label">Ton</span>
+      <div class="toggle" role="group" aria-label="Ticken beim Drehen">
+        <button type="button" id="soundOff" aria-pressed="true">Aus</button>
+        <button type="button" id="soundOn" aria-pressed="false">An</button>
+      </div>
+    </div>
     </div>
   </div>
 
   <section class="col col--crew" aria-labelledby="h-crew">
     <div class="head">
       <h2 id="h-crew">Crew</h2>
-      <span class="count" id="crewCount">0 DJs</span>
+      <button class="count" id="crewCount" type="button" aria-expanded="true" aria-controls="roster">0 DJs</button>
     </div>
     <form class="add" id="addForm" autocomplete="off">
       <input id="djName" type="text" placeholder="DJ-Name — mehrere mit Komma" aria-label="DJ-Name">
       <button type="submit">Rein</button>
     </form>
     <div class="chips" id="roster"></div>
-    <p class="note" id="crewNote">Mehrere auf einmal: mit Komma trennen oder Liste reinkopieren.</p>
+    <p class="note" id="crewNote"></p>
   </section>
 
   <section class="col col--deck" aria-label="Das Rad">
     <div class="wheelwrap">
       <canvas id="wheel" width="900" height="900" role="img" aria-label="Glücksrad mit den DJ-Namen"></canvas>
       <div class="needle" aria-hidden="true"></div>
+      <div class="reveal" id="reveal" hidden aria-live="assertive">
+        <div class="reveal-box">
+          <div class="reveal-name" id="revealName"></div>
+          <div class="reveal-slot" id="revealSlot"></div>
+        </div>
+      </div>
     </div>
     <button class="spin" id="btnSpin" type="button">Drehen</button>
     <button class="allbtn" id="btnAll" type="button">Alle auf einmal auslosen</button>
@@ -642,6 +700,9 @@
   };
 
   var TOUR_KEY = "plattenteller.tour";
+  var SOUND_KEY = "plattenteller.sound";
+  var CREW_FOLD_AT = 10;         /* ab so vielen Namen klappt die Crew zu */
+  var REVEAL_MS = 2000;
 
   /* Der Rundgang zeigt auf echte Bedienelemente, nichts wird nachgebaut. */
   var TOUR = [
@@ -658,7 +719,7 @@
     {
       sel: "#slots",
       title: "Der Laufplan",
-      text: "Hier füllt sich der Abend, Slot für Slot. Geht es über Mitternacht, markiert ein grünes +1 den Tageswechsel."
+      text: "Hier füllt sich der Abend. Zwei Zeilen nacheinander antippen tauscht sie, das × gibt einen Slot wieder frei. Ein grünes +1 markiert Mitternacht."
     },
     {
       sel: "#btnSettings",
@@ -679,7 +740,7 @@
     {
       sel: ".topactions",
       title: "Oben rechts",
-      text: "Das Fragezeichen startet diesen Rundgang neu, die Sonne schaltet auf hell, und „Alles zurücksetzen“ leert Namen und Plan für den nächsten Abend."
+      text: "Fragezeichen: dieser Rundgang. Sonne: heller Modus. Kreispfeil: alles zurücksetzen — mit Rückgängig, falls es ein Versehen war."
     }
   ];
 
@@ -737,6 +798,11 @@
     tourText: document.getElementById("tourText"),
     tourSkip: document.getElementById("tourSkip"),
     tourClose: document.getElementById("tourClose"),
+    reveal: document.getElementById("reveal"),
+    revealName: document.getElementById("revealName"),
+    revealSlot: document.getElementById("revealSlot"),
+    soundOff: document.getElementById("soundOff"),
+    soundOn: document.getElementById("soundOn"),
     tourArrow: document.getElementById("tourArrow"),
     tourNext: document.getElementById("tourNext")
   };
@@ -744,6 +810,17 @@
   var tourIndex = -1;
   var tourTarget = null;
   var tourRaf = 0;
+
+  var undoSnap = null;           /* Zustand vor der letzten Aktion */
+  var swapFrom = -1;             /* angetippte Zeile beim Tauschen */
+  var crewOpen = null;           /* null = automatisch je nach Groesse */
+  var soundOn = false;
+  var audioCtx = null;
+  var lastTick = -1;
+  var revealTimer = 0;
+  var toastNode = null;
+  var toastTimer = 0;
+  var canShare = window.matchMedia("(hover: none)").matches && typeof navigator.share === "function";
   var settingsWereOpen = false;
 
   var ctx = el.canvas.getContext("2d");
@@ -995,8 +1072,10 @@
       ctx.restore();
     }
 
-    /* Nabe wie ein Plattenlabel */
-    var hub = r * 0.2;
+    /* Nabe wie ein Plattenlabel - zeigt, um welchen Slot gerade gedreht wird */
+    var hub = r * 0.235;
+    var nextIdx = nextFreeSlot();
+    var hubMain = nextIdx === -1 ? "voll" : clock(startMinutes() + nextIdx * state.slotMin);
     ctx.beginPath();
     ctx.arc(c, c, hub, 0, Math.PI * 2);
     ctx.fillStyle = pl.hubFill;
@@ -1008,11 +1087,11 @@
     ctx.fillStyle = pl.hubText;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = "600 " + Math.round(size * 0.05) + "px 'IBM Plex Sans', sans-serif";
-    ctx.fillText(String(names.length), c, c - size * 0.011);
+    ctx.font = "600 " + Math.round(size * 0.046) + "px 'IBM Plex Sans', sans-serif";
+    ctx.fillText(hubMain, c, c - size * 0.012);
     ctx.fillStyle = pl.hubLabel;
-    ctx.font = "500 " + Math.round(size * 0.021) + "px 'IBM Plex Sans', sans-serif";
-    ctx.fillText("IM RAD", c, c + size * 0.031);
+    ctx.font = "500 " + Math.round(size * 0.02) + "px 'IBM Plex Sans', sans-serif";
+    ctx.fillText(names.length + " IM RAD", c, c + size * 0.03);
   }
 
   function fitText(text, maxWidth) {
@@ -1045,7 +1124,10 @@
     var t0 = performance.now();
 
     state = Object.assign({}, state, { spinning: true, winnerIndex: -1, freshSlot: -1 });
+    swapFrom = -1;
+    lastTick = -1;
     el.btnSpin.disabled = true;
+    el.btnAll.disabled = true;
     el.readout.classList.remove("is-idle");
     el.who.textContent = "…";
     el.where.textContent = "Das Rad läuft";
@@ -1054,6 +1136,14 @@
       var p = Math.min(1, (now - t0) / duration);
       var eased = 1 - Math.pow(1 - p, 4);
       state.rotation = from + delta * eased;
+
+      /* welches Segment liegt gerade unter dem Zeiger? bei Wechsel: tick */
+      var under = Math.floor(((((-Math.PI / 2 - state.rotation) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2)) / seg);
+      if (under !== lastTick) {
+        lastTick = under;
+        tick();
+      }
+
       drawWheel();
       if (p < 1) {
         requestAnimationFrame(frame);
@@ -1062,6 +1152,113 @@
       finish(names[winner], winner);
     }
     requestAnimationFrame(frame);
+  }
+
+  /* Kurzer Klick aus dem Browser selbst - keine Datei, kein Download. */
+  function tick() {
+    if (!soundOn) return;
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === "suspended") audioCtx.resume();
+      var t = audioCtx.currentTime;
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(1500, t);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.12, t + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.045);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(t);
+      osc.stop(t + 0.05);
+    } catch (err) {
+      /* kein Ton moeglich - dann eben still */
+    }
+  }
+
+  function setSound(on) {
+    soundOn = on;
+    try {
+      localStorage.setItem(SOUND_KEY, on ? "1" : "0");
+    } catch (err) {
+      /* Wahl gilt dann nur fuer diesen Besuch */
+    }
+    renderControls();
+    if (on) tick();
+  }
+
+  /* ---------- Rueckgaengig ---------- */
+
+  function remember() {
+    undoSnap = {
+      djs: state.djs,
+      assigned: state.assigned,
+      slotCount: state.slotCount,
+      autoSlots: state.autoSlots,
+      once: state.once
+    };
+  }
+
+  function offerUndo(msg) {
+    var snap = undoSnap;
+    if (!snap) return;
+    toast(msg, function () {
+      swapFrom = -1;
+      setState(Object.assign({}, snap, { winnerIndex: -1, freshSlot: -1 }));
+      toast("Rückgängig gemacht");
+    });
+  }
+
+  /* ---------- Treffer-Moment ---------- */
+
+  function showReveal(name, slot) {
+    clearTimeout(revealTimer);
+    el.revealName.textContent = name;
+    el.revealSlot.textContent = "Slot " + (slot + 1) + " · " + slotLabel(slot);
+    el.reveal.classList.remove("is-out");
+    el.reveal.hidden = false;
+    revealTimer = setTimeout(function () {
+      el.reveal.classList.add("is-out");
+      revealTimer = setTimeout(function () { el.reveal.hidden = true; }, 300);
+    }, REVEAL_MS);
+  }
+
+  /* ---------- Slots tauschen / freigeben ---------- */
+
+  function rowTap(i) {
+    if (state.spinning) return;
+    if (swapFrom === -1) {
+      if (!state.assigned[i]) return;
+      swapFrom = i;
+      renderPlan();
+      toast("Jetzt die Zeile antippen, mit der getauscht werden soll");
+      return;
+    }
+    if (swapFrom === i) {
+      swapFrom = -1;
+      renderPlan();
+      hideToast();
+      return;
+    }
+    var plan = state.assigned.slice();
+    var held = plan[swapFrom];
+    plan[swapFrom] = plan[i];
+    plan[i] = held;
+    swapFrom = -1;
+    remember();
+    setState({ assigned: plan, winnerIndex: -1, freshSlot: i });
+    offerUndo("Getauscht");
+  }
+
+  function releaseSlot(i) {
+    if (state.spinning || !state.assigned[i]) return;
+    swapFrom = -1;
+    var plan = state.assigned.slice();
+    plan[i] = null;
+    remember();
+    setState({ assigned: plan, winnerIndex: -1, freshSlot: -1 });
+    offerUndo(clock(startMinutes() + i * state.slotMin) + " wieder frei");
   }
 
   /* Ganze Crew in einem Rutsch verteilen - dieselbe Ziehung wie am Rad,
@@ -1086,18 +1283,25 @@
     }
 
     if (placed === 0) return;
+    swapFrom = -1;
+    remember();
     setState({ assigned: plan, winnerIndex: -1, freshSlot: -1 });
-    toast(placed === 1 ? "1 Slot ausgelost" : placed + " Slots ausgelost");
+    offerUndo(placed === 1 ? "1 Slot ausgelost" : placed + " Slots ausgelost");
   }
 
   function finish(name, winnerIndex) {
     var slot = nextFreeSlot();
+    remember();
     var plan = state.assigned.slice();
     plan[slot] = name;
     setState({ spinning: false, winnerIndex: winnerIndex, assigned: plan, freshSlot: slot });
     el.readout.classList.remove("is-idle");
     el.who.textContent = name;
     el.where.textContent = "Slot " + (slot + 1) + " · " + slotLabel(slot);
+    showReveal(name, slot);
+    setTimeout(function () {
+      offerUndo(name + " → " + clock(startMinutes() + slot * state.slotMin));
+    }, REVEAL_MS + 100);
   }
 
   /* ---------- Ausgabe ---------- */
@@ -1109,9 +1313,44 @@
     drawWheel();
   }
 
+  function isSeedCrew() {
+    if (state.djs.length !== SEED.length) return false;
+    return SEED.every(function (n) { return state.djs.indexOf(n) !== -1; });
+  }
+
+  function crewIsOpen() {
+    if (crewOpen !== null) return crewOpen;
+    return state.djs.length <= CREW_FOLD_AT;
+  }
+
+  function renderNote() {
+    el.crewNote.innerHTML = "";
+    el.crewNote.hidden = state.djs.length === 0;
+    if (state.djs.length === 0) return;
+
+    if (isSeedCrew()) {
+      el.crewNote.appendChild(document.createTextNode("Beispielnamen zum Ausprobieren. "));
+      var link = document.createElement("button");
+      link.type = "button";
+      link.textContent = "Beispiel-Crew entfernen";
+      link.addEventListener("click", removeSeed);
+      el.crewNote.appendChild(link);
+    } else {
+      el.crewNote.textContent = "Mehrere auf einmal: mit Komma trennen oder Liste reinkopieren.";
+    }
+  }
+
   function renderRoster() {
     el.roster.innerHTML = "";
-    el.crewCount.textContent = state.djs.length + (state.djs.length === 1 ? " DJ" : " DJs");
+    renderNote();
+
+    var n = state.djs.length;
+    var open = crewIsOpen();
+    var label = n + (n === 1 ? " DJ" : " DJs");
+    if (n > 0) label += open ? "  ▴" : "  ▾";
+    el.crewCount.textContent = label;
+    el.crewCount.setAttribute("aria-expanded", open ? "true" : "false");
+    el.roster.hidden = n > 0 && !open;
 
     if (state.djs.length === 0) {
       var hint = document.createElement("p");
@@ -1170,9 +1409,12 @@
       var li = document.createElement("li");
       var classes = [];
       if (!name) classes.push("is-open");
+      if (name) classes.push("is-filled");
       if (i === next) classes.push("is-next");
       if (i === state.freshSlot) classes.push("is-fresh");
+      if (i === swapFrom) classes.push("is-picked");
       li.className = classes.join(" ");
+      li.addEventListener("click", rowTapHandler(i));
       if (i === state.freshSlot || (state.freshSlot === -1 && i === next)) {
         fresh = li;
       }
@@ -1183,7 +1425,7 @@
 
       var dj = document.createElement("span");
       dj.className = "dj";
-      dj.textContent = name ? name : (i === next ? "als Nächstes" : "frei");
+      dj.textContent = name ? name : (i === next ? "nächster" : "frei");
 
       li.appendChild(time);
       if (newDay) {
@@ -1194,12 +1436,36 @@
         li.appendChild(tag);
       }
       li.appendChild(dj);
+      if (name) {
+        var rel = document.createElement("button");
+        rel.className = "rel";
+        rel.type = "button";
+        rel.textContent = "×";
+        rel.setAttribute("aria-label", name + " aus diesem Slot nehmen");
+        rel.addEventListener("click", releaseHandler(i));
+        li.appendChild(rel);
+      }
       el.slots.appendChild(li);
     }
 
     if (fresh && fresh.scrollIntoView) {
       fresh.scrollIntoView({ block: "nearest" });
     }
+  }
+
+  function rowTapHandler(i) {
+    return function () { rowTap(i); };
+  }
+
+  function releaseHandler(i) {
+    return function (e) {
+      e.stopPropagation();
+      releaseSlot(i);
+    };
+  }
+
+  function slotsWord(n) {
+    return n + (n === 1 ? " Slot" : " Slots");
   }
 
   function renderControls() {
@@ -1211,13 +1477,15 @@
     el.until.textContent = "bis " + clock(endMinutes()) + overnight;
     el.settingsSum.textContent =
       state.startTime + "–" + clock(endMinutes()) + overnight +
-      "  ·  " + state.slotMin + " Min  ·  " + state.slotCount + " Slots  ·  " +
+      "  ·  " + state.slotMin + " Min  ·  " + slotsWord(state.slotCount) + "  ·  " +
       (state.once ? "Jeder 1×" : "Mehrfach");
     el.slotMinus.disabled = state.slotCount <= 1;
     el.slotPlus.disabled = state.slotCount >= MAX_SLOTS;
     el.modeOnce.setAttribute("aria-pressed", state.once ? "true" : "false");
     el.modeMulti.setAttribute("aria-pressed", state.once ? "false" : "true");
-    el.crewNote.hidden = state.djs.length === 0;
+    el.soundOff.setAttribute("aria-pressed", soundOn ? "false" : "true");
+    el.soundOn.setAttribute("aria-pressed", soundOn ? "true" : "false");
+    el.btnCopy.textContent = canShare ? "Teilen" : "Kopieren";
 
     el.btnSpin.disabled = !canSpin();
     el.btnAll.disabled = !canSpin();
@@ -1226,7 +1494,7 @@
     if (state.djs.length === 0) {
       idle("Bereit", "Trag erst ein paar Namen ein");
     } else if (nextFreeSlot() === -1) {
-      idle("Plan voll", "Alle " + state.slotCount + " Slots sind vergeben");
+      idle("Plan voll", state.slotCount === 1 ? "Der Slot ist vergeben" : "Alle " + state.slotCount + " Slots sind vergeben");
     } else if (pool().length === 0) {
       idle("Rad leer", "Jeder war dran — Modus auf „Mehrfach“ oder Plan leeren");
     } else if (state.winnerIndex === -1) {
@@ -1285,7 +1553,23 @@
       patch.slotCount = clampSlots(Math.max(1, djs.length));
       patch.assigned = fitPlan(assigned, patch.slotCount);
     }
+    swapFrom = -1;
+    remember();
     setState(patch);
+    offerUndo(name + " entfernt");
+  }
+
+  function resetAll(msg) {
+    swapFrom = -1;
+    crewOpen = null;
+    remember();
+    setState({ djs: [], slotCount: 1, autoSlots: true, assigned: [null], winnerIndex: -1, freshSlot: -1 });
+    offerUndo(msg);
+    if (window.matchMedia("(hover: hover)").matches) el.djName.focus();
+  }
+
+  function removeSeed() {
+    resetAll("Beispiel-Crew entfernt");
   }
 
   function stepSlots(delta) {
@@ -1430,12 +1714,35 @@
     }
   }
 
-  function toast(msg) {
+  function hideToast() {
+    clearTimeout(toastTimer);
+    if (toastNode) {
+      toastNode.remove();
+      toastNode = null;
+    }
+  }
+
+  /* Eine Meldung unten; mit action gibt es einen Rueckgaengig-Knopf dazu. */
+  function toast(msg, action) {
+    hideToast();
     var box = document.createElement("div");
     box.className = "toast";
-    box.textContent = msg;
+    var text = document.createElement("span");
+    text.textContent = msg;
+    box.appendChild(text);
+    if (action) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "Rückgängig";
+      btn.addEventListener("click", function () {
+        hideToast();
+        action();
+      });
+      box.appendChild(btn);
+    }
     document.body.appendChild(box);
-    setTimeout(function () { box.remove(); }, 2400);
+    toastNode = box;
+    toastTimer = setTimeout(hideToast, action ? 5000 : 2600);
   }
 
   /* ---------- Verdrahtung ---------- */
@@ -1465,18 +1772,35 @@
   el.modeMulti.addEventListener("click", function () { setState({ once: false, winnerIndex: -1 }); });
 
   el.btnClearPlan.addEventListener("click", function () {
+    if (!state.assigned.some(Boolean)) return;
+    swapFrom = -1;
+    remember();
     setState({ assigned: new Array(state.slotCount).fill(null), winnerIndex: -1, freshSlot: -1 });
+    offerUndo("Plan geleert");
   });
 
   el.btnResetAll.addEventListener("click", function () {
-    setState({ djs: [], slotCount: 1, autoSlots: true, assigned: [null], winnerIndex: -1, freshSlot: -1 });
-    if (window.matchMedia("(hover: hover)").matches) {
-      el.djName.focus();
-    }
+    if (state.djs.length === 0 && !state.assigned.some(Boolean)) return;
+    resetAll("Alles zurückgesetzt");
   });
+
+  el.crewCount.addEventListener("click", function () {
+    if (state.djs.length === 0) return;
+    crewOpen = !crewIsOpen();
+    renderRoster();
+  });
+
+  el.soundOff.addEventListener("click", function () { setSound(false); });
+  el.soundOn.addEventListener("click", function () { setSound(true); });
 
   el.btnCopy.addEventListener("click", function () {
     var text = planText();
+    if (canShare) {
+      navigator.share({ text: text }).catch(function () {
+        /* abgebrochen - nichts zu tun */
+      });
+      return;
+    }
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(function () {
         toast("Laufplan kopiert");
@@ -1502,7 +1826,13 @@
   el.tourClose.addEventListener("click", endTour);
 
   document.addEventListener("keydown", function (e) {
-    if (!el.tour.hidden && e.key === "Escape") endTour();
+    if (e.key !== "Escape") return;
+    if (!el.tour.hidden) endTour();
+    if (swapFrom !== -1) {
+      swapFrom = -1;
+      renderPlan();
+      hideToast();
+    }
   });
 
   window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", function () {
@@ -1527,6 +1857,12 @@
     document.documentElement.setAttribute("data-theme", storedTheme);
   }
   syncThemeButton();
+
+  try {
+    soundOn = localStorage.getItem(SOUND_KEY) === "1";
+  } catch (err) {
+    soundOn = false;
+  }
 
   load();
   render();
