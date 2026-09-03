@@ -201,6 +201,21 @@
     position:absolute;border-radius:4px;pointer-events:none;
     box-shadow:0 0 0 9999px rgba(0,0,0,.76), 0 0 0 2px var(--green);
   }
+  .tour-arrow{position:absolute;width:0;height:0;transform:translateX(-50%)}
+  .tour-arrow.up{
+    top:-9px;border-left:9px solid transparent;border-right:9px solid transparent;
+    border-bottom:9px solid var(--panel-2);
+  }
+  .tour-arrow.down{
+    bottom:-9px;border-left:9px solid transparent;border-right:9px solid transparent;
+    border-top:9px solid var(--panel-2);
+  }
+  .tour-close{
+    position:absolute;top:4px;right:4px;
+    background:none;border:none;color:var(--faint);
+    width:38px;height:38px;font-size:20px;line-height:1;
+  }
+  .tour-close:hover{color:var(--text)}
   .tour-card{
     position:absolute;width:min(310px,calc(100vw - 24px));
     background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);
@@ -229,8 +244,8 @@
   .bar{grid-area:bar;display:flex;flex-direction:column;background:var(--panel)}
   .barsum{
     display:flex;align-items:center;gap:12px;width:100%;
-    background:var(--alert-bg);border:none;border-left:3px solid var(--alert);
-    padding:9px 20px 9px 17px;text-align:left;
+    background:var(--alert-bg);border:none;
+    padding:9px 20px;text-align:left;
   }
   .barsum:hover{background:var(--alert-bg-hover)}
   .barsum .gear{
@@ -257,8 +272,8 @@
   .barsum[aria-expanded="true"] .caret{transform:rotate(180deg)}
   .ctls{
     display:flex;align-items:center;flex-wrap:wrap;gap:10px 26px;
-    padding:8px 22px 12px 19px;
-    background:var(--alert-bg);border-left:3px solid var(--alert);
+    padding:8px 22px 12px;
+    background:var(--alert-bg);
   }
   .ctl{display:flex;align-items:center;gap:9px}
   .ctl input[type="time"],.ctl select{
@@ -371,6 +386,14 @@
   }
   .spin:hover:not(:disabled){background:var(--green-hover)}
   .spin:disabled{background:var(--panel-2);color:var(--faint);border:1px solid var(--line);cursor:not-allowed}
+  .allbtn{
+    margin-top:10px;background:none;
+    border:1px solid var(--line);border-radius:var(--r);
+    color:var(--muted);padding:9px 18px;min-height:40px;
+    font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;
+  }
+  .allbtn:hover:not(:disabled){color:var(--green);border-color:var(--green)}
+  .allbtn:disabled{color:var(--faint);cursor:not-allowed}
 
   .readout{
     margin-top:12px;text-align:center;min-height:50px;
@@ -392,10 +415,10 @@
     overflow:auto;overscroll-behavior:contain;
     align-content:flex-start;
   }
-  .slots li{display:flex;align-items:center;gap:10px;background:var(--panel-2);padding:6px 10px;border-left:2px solid transparent}
+  .slots li{display:flex;align-items:center;gap:10px;background:var(--panel-2);padding:6px 10px}
   .slots li.is-open{background:var(--row-open)}
-  .slots li.is-next{border-left-color:var(--green)}
-  .slots li.is-fresh{background:var(--row-fresh);border-left-color:var(--green)}
+  .slots li.is-next .time,.slots li.is-next .dj{color:var(--green)}
+  .slots li.is-fresh{background:var(--row-fresh)}
   .slots .time{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums;flex:none}
   .slots .daytag{
     font-family:var(--mono);font-size:9px;letter-spacing:.08em;color:var(--green);flex:none;
@@ -420,8 +443,8 @@
       grid-template-areas:"bar bar" "crew crew" "deck plan";
       grid-template-rows:auto auto minmax(0,1fr);
     }
-    .barsum{padding:8px 12px 8px 11px;gap:9px}
-    .ctls{padding:8px 12px 10px 11px;gap:9px 18px}
+    .barsum{padding:8px 13px;gap:9px}
+    .ctls{padding:8px 13px 10px;gap:9px 18px}
     .col{padding:12px 13px}
     .col--deck{padding:16px 12px 20px}
     .chips{max-height:104px}
@@ -549,6 +572,7 @@
       <div class="needle" aria-hidden="true"></div>
     </div>
     <button class="spin" id="btnSpin" type="button">Drehen</button>
+    <button class="allbtn" id="btnAll" type="button">Alle auf einmal auslosen</button>
     <div class="readout is-idle" id="readout" aria-live="polite">
       <div class="who" id="who">Bereit</div>
       <div class="where" id="where">Dreh das Rad für den ersten Slot</div>
@@ -572,6 +596,8 @@
 <div class="tour" id="tour" hidden>
   <div class="tour-spot" id="tourSpot"></div>
   <div class="tour-card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
+    <span class="tour-arrow" id="tourArrow" aria-hidden="true"></span>
+    <button class="tour-close" id="tourClose" type="button" aria-label="Rundgang schließen">×</button>
     <p class="step" id="tourStep">1 / 7</p>
     <h3 id="tourTitle">Titel</h3>
     <p class="text" id="tourText">Text</p>
@@ -650,7 +676,7 @@
     {
       sel: "#btnSpin",
       title: "Drehen",
-      text: "Ein Druck, das Rad läuft aus — und wer getroffen wird, landet automatisch im nächsten freien Slot."
+      text: "Ein Druck, das Rad läuft aus — und wer getroffen wird, landet im nächsten freien Slot. Darunter verteilt „Alle auf einmal auslosen“ die ganze Crew in einem Rutsch."
     },
     {
       sel: "#slots",
@@ -715,6 +741,7 @@
     modeMulti: document.getElementById("modeMulti"),
     canvas: document.getElementById("wheel"),
     btnSpin: document.getElementById("btnSpin"),
+    btnAll: document.getElementById("btnAll"),
     readout: document.getElementById("readout"),
     who: document.getElementById("who"),
     where: document.getElementById("where"),
@@ -732,11 +759,14 @@
     tourTitle: document.getElementById("tourTitle"),
     tourText: document.getElementById("tourText"),
     tourSkip: document.getElementById("tourSkip"),
+    tourClose: document.getElementById("tourClose"),
+    tourArrow: document.getElementById("tourArrow"),
     tourNext: document.getElementById("tourNext")
   };
 
   var tourIndex = -1;
   var tourTarget = null;
+  var tourRaf = 0;
   var settingsWereOpen = false;
 
   var ctx = el.canvas.getContext("2d");
@@ -1057,6 +1087,32 @@
     requestAnimationFrame(frame);
   }
 
+  /* Ganze Crew in einem Rutsch verteilen - dieselbe Ziehung wie am Rad,
+     nur ohne siebenmal zuzuschauen. Belegte Slots bleiben unangetastet. */
+  function drawAll() {
+    if (state.spinning) return;
+
+    var plan = state.assigned.slice();
+    var rest = pool();
+    var placed = 0;
+
+    for (var i = 0; i < plan.length; i++) {
+      if (plan[i]) continue;
+      if (state.once) {
+        if (rest.length === 0) break;
+        plan[i] = rest.splice(randInt(rest.length), 1)[0];
+      } else {
+        if (state.djs.length === 0) break;
+        plan[i] = state.djs[randInt(state.djs.length)];
+      }
+      placed++;
+    }
+
+    if (placed === 0) return;
+    setState({ assigned: plan, winnerIndex: -1, freshSlot: -1 });
+    toast(placed === 1 ? "1 Slot ausgelost" : placed + " Slots ausgelost");
+  }
+
   function finish(name, winnerIndex) {
     var slot = nextFreeSlot();
     var plan = state.assigned.slice();
@@ -1187,6 +1243,7 @@
     el.crewNote.hidden = state.djs.length === 0;
 
     el.btnSpin.disabled = !canSpin();
+    el.btnAll.disabled = !canSpin();
     if (state.spinning) return;
 
     if (state.djs.length === 0) {
@@ -1286,6 +1343,7 @@
     tourIndex = -1;
     el.tour.hidden = false;
     stepTour();
+    if (!tourRaf) tourRaf = requestAnimationFrame(trackTour);
   }
 
   function stepTour() {
@@ -1315,30 +1373,37 @@
     var box = target.getBoundingClientRect();
     if (box.top < 8 || box.bottom > window.innerHeight - 8) {
       target.scrollIntoView({ block: "center", inline: "nearest" });
-      requestAnimationFrame(function () { placeTour(target); });
-    } else {
-      placeTour(target);
     }
+    placeTour(target);
   }
 
-  /* Loch ueber das echte Bedienelement legen, Karte daneben oder darunter. */
+  /* Nur schreiben, wenn sich wirklich etwas aendert - sonst rechnet der
+     Browser bei jedem Bild neu. */
+  function put(node, prop, value) {
+    if (node.style[prop] !== value) node.style[prop] = value;
+  }
+
+  /* Loch ueber das echte Bedienelement, Karte mit Zeiger daneben. */
   function placeTour(target) {
     var r = target.getBoundingClientRect();
     var pad = 6;
-    var spot = el.tourSpot.style;
-    spot.left = Math.max(0, r.left - pad) + "px";
-    spot.top = Math.max(0, r.top - pad) + "px";
-    spot.width = (r.width + pad * 2) + "px";
-    spot.height = (r.height + pad * 2) + "px";
+    put(el.tourSpot, "left", Math.max(0, r.left - pad) + "px");
+    put(el.tourSpot, "top", Math.max(0, r.top - pad) + "px");
+    put(el.tourSpot, "width", (r.width + pad * 2) + "px");
+    put(el.tourSpot, "height", (r.height + pad * 2) + "px");
 
     var cw = el.tourCard.offsetWidth;
     var ch = el.tourCard.offsetHeight;
     var gap = 14;
     var top;
+    var side = "";
+
     if (window.innerHeight - r.bottom > ch + gap + 8) {
       top = r.bottom + gap;
+      side = "up";
     } else if (r.top > ch + gap + 8) {
       top = r.top - ch - gap;
+      side = "down";
     } else {
       top = Math.max(8, (window.innerHeight - ch) / 2);
     }
@@ -1346,14 +1411,40 @@
     var left = r.left + r.width / 2 - cw / 2;
     left = Math.min(Math.max(10, left), window.innerWidth - cw - 10);
 
-    el.tourCard.style.top = Math.round(top) + "px";
-    el.tourCard.style.left = Math.round(left) + "px";
+    put(el.tourCard, "top", Math.round(top) + "px");
+    put(el.tourCard, "left", Math.round(left) + "px");
+
+    /* Zeiger sitzt ueber der Mitte des markierten Elements */
+    if (side) {
+      var arrowX = Math.min(Math.max(16, r.left + r.width / 2 - left), cw - 16);
+      put(el.tourArrow, "left", Math.round(arrowX) + "px");
+      el.tourArrow.className = "tour-arrow " + side;
+      el.tourArrow.hidden = false;
+    } else {
+      el.tourArrow.hidden = true;
+    }
+  }
+
+  /* Solange der Rundgang laeuft, jede Bildwiederholung nachfuehren. Damit sitzt
+     die Markierung auch dann richtig, wenn das Handy noch nachscrollt oder die
+     Adressleiste ein- und ausfaehrt. */
+  function trackTour() {
+    if (el.tour.hidden) {
+      tourRaf = 0;
+      return;
+    }
+    if (tourTarget) placeTour(tourTarget);
+    tourRaf = requestAnimationFrame(trackTour);
   }
 
   function endTour() {
     el.tour.hidden = true;
     tourIndex = -1;
     tourTarget = null;
+    if (tourRaf) {
+      cancelAnimationFrame(tourRaf);
+      tourRaf = 0;
+    }
     if (!settingsWereOpen) openSettings(false);
     try {
       localStorage.setItem(TOUR_KEY, "1");
@@ -1380,6 +1471,7 @@
   });
 
   el.btnSpin.addEventListener("click", spin);
+  el.btnAll.addEventListener("click", drawAll);
 
   el.startTime.addEventListener("change", function () {
     setState({ startTime: el.startTime.value || "18:00" });
@@ -1430,14 +1522,11 @@
   el.btnTour.addEventListener("click", startTour);
   el.tourNext.addEventListener("click", stepTour);
   el.tourSkip.addEventListener("click", endTour);
+  el.tourClose.addEventListener("click", endTour);
 
   document.addEventListener("keydown", function (e) {
     if (!el.tour.hidden && e.key === "Escape") endTour();
   });
-
-  window.addEventListener("scroll", function () {
-    if (!el.tour.hidden && tourTarget) placeTour(tourTarget);
-  }, true);
 
   window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", function () {
     if (!document.documentElement.hasAttribute("data-theme")) {
@@ -1446,10 +1535,7 @@
     }
   });
 
-  window.addEventListener("resize", function () {
-    sizeCanvas();
-    if (!el.tour.hidden && tourTarget) placeTour(tourTarget);
-  });
+  window.addEventListener("resize", sizeCanvas);
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(drawWheel);
   }
