@@ -141,7 +141,6 @@
     display:flex;flex-direction:column;
     min-height:100vh;
     min-height:100dvh;
-    padding-bottom:env(safe-area-inset-bottom,0px);
     background:
       radial-gradient(900px 520px at 50% -8%, var(--bg-top) 0%, transparent 62%),
       var(--ink);
@@ -475,6 +474,14 @@
     font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer;
   }
 
+  /* ---------- Fusszeile ---------- */
+  .foot{
+    padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));
+    text-align:center;font-size:12px;color:var(--faint);
+  }
+  .foot a{color:var(--muted);text-decoration:none}
+  .foot a:hover{color:var(--green)}
+
   /* ---------- Handy: Crew oben quer, darunter Rad + Laufplan ---------- */
   @media (max-width:1000px){
     .stage{
@@ -651,6 +658,8 @@
 
 </main>
 
+<footer class="foot">gebaut von David<span id="footContact"></span></footer>
+
 <div class="tour" id="tour" hidden>
   <div class="tour-spot" id="tourSpot"></div>
   <div class="tour-card" id="tourCard" role="dialog" aria-modal="true" aria-labelledby="tourTitle">
@@ -773,6 +782,9 @@
   ];
 
   var SEED = ["Kalle", "Mira", "Nox", "Tobi", "Selin", "Jonas"];
+
+  /* Kontakt in der Fusszeile - leer lassen, dann steht nur der Name da */
+  var CONTACT_EMAIL = "";
 
   var state = {
     djs: SEED.slice(),
@@ -1885,6 +1897,15 @@
     document.documentElement.setAttribute("data-theme", storedTheme);
   }
   syncThemeButton();
+
+  if (CONTACT_EMAIL) {
+    var foot = document.getElementById("footContact");
+    foot.appendChild(document.createTextNode(" · "));
+    var mail = document.createElement("a");
+    mail.href = "mailto:" + CONTACT_EMAIL;
+    mail.textContent = CONTACT_EMAIL;
+    foot.appendChild(mail);
+  }
 
   try {
     soundOn = localStorage.getItem(SOUND_KEY) === "1";
